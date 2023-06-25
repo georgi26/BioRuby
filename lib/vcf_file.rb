@@ -70,23 +70,8 @@ module BioLabi
       end
     end
 
-    def each_row_mem
-      started = false
-      lines = File.readlines(@file)
-      lines.each do |line|
-        if started
-          if (isARow(line))
-            row = VCFRow.new line
-            yield row
-          end
-        else
-          started = isLineHeader(line)
-        end
-      end
-    end
-
     def load()
-      self.each_row_mem do |row|
+      self.each_row do |row|
         c = @cache[row.chromosome.to_sym]
         if (c.is_a? Hash)
           c[row.position] = row
