@@ -56,6 +56,14 @@ describe BioLabi::VCFFile do
       end
       assert_equal 30, result.size
     end
+
+    it "Has to read rows from file" do
+      result = []
+      @vcfFile.each_row_mem do |row|
+        result.push(row)
+      end
+      assert_equal 30, result.size
+    end
     it "Has to find row by chromosome and position " do
       @vcfFile.load
       row = @vcfFile.findRow("1", 10031)
