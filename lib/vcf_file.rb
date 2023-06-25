@@ -23,11 +23,12 @@ module BioLabi
                         "NC_000021.8" => "21",
                         "NC_000022.10" => "22",
                         "NC_000023.10" => "X",
-                        "NC_000024.9" => "Y" }
+                        "NC_000024.9" => "Y",
+                        "NC_012920.1" => "MT" }
 
-    VCF_HEADER = ["#CHROM", "POS", "ID", "REF", "ALT"]
+    VCF_HEADER = [:"#CHROM", :"POS", :"ID", :"REF", :"ALT", :"QUAL", :"FILTER", :"INFO"]
 
-    attr_reader :cache
+    attr_reader :cache, :file
 
     def initialize(file)
       @file = file
@@ -44,7 +45,7 @@ module BioLabi
       lArray = line.split
       if (lArray.size >= VCF_HEADER.size)
         VCF_HEADER.each_with_index do |h, i|
-          if (h != lArray[i])
+          if (h.to_sym != lArray[i].to_sym)
             return false
           end
         end
@@ -54,7 +55,7 @@ module BioLabi
     end
 
     def isARow(line)
-      return line.split.size > VCF_HEADER.size
+      return line.split.size >= VCF_HEADER.size
     end
 
     def each_row
@@ -86,7 +87,7 @@ module BioLabi
   end
 
   class VCFRow
-    attr_reader :chromosome, :id, :position, :ref, :alt, :raw
+    attr_reader :chromosome, :id, :position, :ref, :alt, :info, :raw
 
     def initialize(rawData)
       @raw = rawData
@@ -95,6 +96,18 @@ module BioLabi
 
     def to_s
       raw
+    end
+
+    def clnsig
+      unless @clnsig
+        @clnsig = @info[:CLNSIG]
+        if (@clnsig && @clnsig.is_a?(Array))
+          @clnsig = @clnsig[0].to_i
+        elsif (@clnsig)
+          @clnsig = @clnsig.to_i
+        end
+      end
+      @clnsig
     end
 
     private
@@ -109,6 +122,21 @@ module BioLabi
       @id = tokens[2]
       @ref = tokens[3]
       @alt = tokens[4]
+      @info = parseInfo(tokens[7])
+    end
+
+    def parseInfo(input)
+      result = {}
+      rows = input.split(";")
+      rows.each do |r|
+        rr = r.split("=")
+        if (rr.size >= 2)
+          key = rr[0]
+          values = rr[1].split ","
+          result[key.to_sym] = values
+        end
+      end
+      result
     end
   end
 end
