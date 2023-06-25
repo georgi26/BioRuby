@@ -1,30 +1,28 @@
 module BioLabi
+  class AssemblyReport
+    attr_reader :chromosomes_map
+
+    def initialize(filePath = "#{File.dirname(__FILE__)}/GRCh37.p13_assembly_report.txt")
+      @file = filePath
+      @chromosomes_map = {}
+      parseFile
+    end
+
+    def parseFile()
+      File.foreach(@file) do |line|
+        if (!line.start_with? "#")
+          data = line.split
+          if (data.size > 6)
+            @chromosomes_map[data[4].chomp] = data[2].chomp
+            @chromosomes_map[data[6].chomp] = data[2].chomp
+          end
+        end
+      end
+    end
+  end
+
   class VCFFile
-    CHROMOSOMES_MAP = { "NC_000001.10" => "1",
-                        "NC_000002.11" => "2",
-                        "NC_000003.11" => "3",
-                        "NC_000004.11" => "4",
-                        "NC_000005.9" => "5",
-                        "NC_000006.11" => "6",
-                        "NC_000007.13" => "7",
-                        "NC_000008.10" => "8",
-                        "NC_000009.11" => "9",
-                        "NC_000010.10" => "10",
-                        "NC_000011.9" => "11",
-                        "NC_000012.11" => "12",
-                        "NC_000013.10" => "13",
-                        "NC_000014.8" => "14",
-                        "NC_000015.9" => "15",
-                        "NC_000016.9" => "16",
-                        "NC_000017.10" => "17",
-                        "NC_000018.9" => "18",
-                        "NC_000019.9" => "19",
-                        "NC_000020.10" => "20",
-                        "NC_000021.8" => "21",
-                        "NC_000022.10" => "22",
-                        "NC_000023.10" => "X",
-                        "NC_000024.9" => "Y",
-                        "NC_012920.1" => "MT" }
+    ASSEMBLY_REPORT = AssemblyReport.new
 
     VCF_HEADER = [:"#CHROM", :"POS", :"ID", :"REF", :"ALT", :"QUAL", :"FILTER", :"INFO"]
 
@@ -33,7 +31,7 @@ module BioLabi
     def initialize(file)
       @file = file
       @cache = {}
-      CHROMOSOMES_MAP.values.each do |c|
+      ASSEMBLY_REPORT.chromosomes_map.values.each do |c|
         @cache[c.to_sym] = {}
       end
     end
@@ -114,7 +112,7 @@ module BioLabi
 
     def parse()
       tokens = @raw.split
-      @chromosome = VCFFile::CHROMOSOMES_MAP[tokens[0]]
+      @chromosome = VCFFile::ASSEMBLY_REPORT.chromosomes_map[tokens[0]]
       unless @chromosome
         @chromosome = tokens[0]
       end
