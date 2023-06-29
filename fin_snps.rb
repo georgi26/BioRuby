@@ -4,11 +4,12 @@ t0 = Time.now
 puts "Started ad #{t0}"
 yourFile = BioLabi::VCFFile.new("/home/georgi/Documents/LabResults/DNA/TSAB6967.filtered.snp.vcf")
 genome37File = BioLabi::VCFFile.new("/home/georgi/Documents/LabResults/DNA/GCF_000001405.25")
-puts "Load file #{yourFile.file}"
-yourFile.load
+puts "Load file #{genome37File.path}"
+genome37File.load
 puts "Loaded"
-genome37File.each_row do |row|
-  found = yourFile.findRow(row.chromosome, row.position)
+
+yourFile.each_row do |row|
+  found = genome37File.findRow(row.chromosome, row.position)
   if (found)
     puts "#################################"
     puts found

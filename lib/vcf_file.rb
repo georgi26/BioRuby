@@ -13,8 +13,8 @@ module BioLabi
         if (!line.start_with? "#")
           data = line.split
           if (data.size > 6)
-            @chromosomes_map[data[4].chomp] = data[2].chomp
-            @chromosomes_map[data[6].chomp] = data[2].chomp
+            @chromosomes_map[data[4].chomp] = data[2].chomp.to_sym
+            @chromosomes_map[data[6].chomp] = data[2].chomp.to_sym
           end
         end
       end
@@ -26,13 +26,13 @@ module BioLabi
 
     VCF_HEADER = [:"#CHROM", :"POS", :"ID", :"REF", :"ALT", :"QUAL", :"FILTER", :"INFO"]
 
-    attr_reader :cache, :file
+    attr_reader :cache, :path
 
     def initialize(file)
-      @file = file
+      @path = file
       @cache = {}
       ASSEMBLY_REPORT.chromosomes_map.values.each do |c|
-        @cache[c.to_sym] = {}
+        @cache[c] = {}
       end
     end
 
@@ -58,34 +58,82 @@ module BioLabi
 
     def each_row
       started = false
-      File.foreach(@file) do |line|
+      file = File.open(@path, "r")
+      while (file.pos < file.size)
+        pos = file.pos
+        line = file.readline
         if started
           if (isARow(line))
             row = VCFRow.new line
+            row.filePosition = pos
             yield row
           end
         else
           started = isLineHeader(line)
         end
       end
+      file.close
     end
 
     def load()
+      if (has_index_file)
+        load_from_index
+      else
+        load_from_rows
+      end
+    end
+
+    def load_from_rows
+      out = File.open(index_file_name, "w")
       self.each_row do |row|
         c = @cache[row.chromosome.to_sym]
         if (c.is_a? Hash)
-          c[row.position] = row
+          c[row.position] = row.filePosition
+          out.puts("#{row.chromosome} #{row.position} #{row.filePosition}")
+        end
+      end
+      out.close
+    end
+
+    def load_from_index
+      File.foreach(index_file_name) do |line|
+        row = line.split
+        c = @cache[row[0].to_sym]
+        if (c.is_a? Hash)
+          c[row[1].to_i] = row[2].to_i
         end
       end
     end
 
+    def has_index_file
+      File.exist? index_file_name
+    end
+
+    def index_file_name
+      "#{File.dirname(path)}/#{File.basename(path)}.biolabi.index"
+    end
+
     def findRow(chrom, position)
-      @cache[chrom.to_sym][position]
+      pos = @cache[chrom.to_sym][position]
+      if (pos)
+        readPos(pos)
+      else
+        nil
+      end
+    end
+
+    def readPos(pos)
+      file = File.open(@path, "r")
+      file.pos = pos
+      row = VCFRow.new(file.readline)
+      file.close
+      row
     end
   end
 
   class VCFRow
     attr_reader :chromosome, :id, :position, :ref, :alt, :info, :raw
+    attr_accessor :filePosition
 
     def initialize(rawData)
       @raw = rawData

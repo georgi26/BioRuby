@@ -8,7 +8,7 @@ describe BioLabi::VCFRow do
   end
   describe "When given vcf raw data line from vcf file" do
     it "Must read Chomosome number correctly" do
-      _(@vcfRow.chromosome).must_equal "1"
+      _(@vcfRow.chromosome).must_equal :"1"
     end
     it "must read position number correctly" do
       _(@vcfRow.position).must_equal 10001
@@ -61,7 +61,7 @@ describe BioLabi::VCFFile do
       @vcfFile.load
       row = @vcfFile.findRow("1", 10031)
       assert row
-      assert_equal "1", row.chromosome
+      assert_equal :"1", row.chromosome
       assert_equal 10031, row.position
     end
   end
@@ -73,13 +73,13 @@ describe BioLabi::AssemblyReport do
   end
   describe "When given GenBank-Accn or RefSeq-Accn" do
     it "Must return correct chromosome number " do
-      assert_equal "1", @aReport.chromosomes_map["NC_000001.10"]
-      assert_equal "11", @aReport.chromosomes_map["GL000202.1"]
-      assert_equal "1", @aReport.chromosomes_map["NW_004070863.1"]
-      assert_equal "7", @aReport.chromosomes_map["NW_003571039.1"]
-      assert_equal "X", @aReport.chromosomes_map["NW_004070883.1"]
-      assert_equal "MT", @aReport.chromosomes_map["NC_012920.1"]
-      assert_equal "17", @aReport.chromosomes_map["GL000258.1"]
+      assert_equal :"1", @aReport.chromosomes_map["NC_000001.10"]
+      assert_equal :"11", @aReport.chromosomes_map["GL000202.1"]
+      assert_equal :"1", @aReport.chromosomes_map["NW_004070863.1"]
+      assert_equal :"7", @aReport.chromosomes_map["NW_003571039.1"]
+      assert_equal :"X", @aReport.chromosomes_map["NW_004070883.1"]
+      assert_equal :"MT", @aReport.chromosomes_map["NC_012920.1"]
+      assert_equal :"17", @aReport.chromosomes_map["GL000258.1"]
     end
   end
 end
