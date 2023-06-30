@@ -30,10 +30,6 @@ module BioLabi
 
     def initialize(file)
       @path = file
-      @cache = {}
-      ASSEMBLY_REPORT.chromosomes_map.values.each do |c|
-        @cache[c] = {}
-      end
     end
 
     def isLineHeader(line)
@@ -76,33 +72,46 @@ module BioLabi
     end
 
     def load()
-      if (has_index_file)
+      if (Dir.exist? index_dir_name)
+        return
+      elsif (has_index_file)
+        Dir.mkdir(index_dir_name)
         load_from_index
       else
+        Dir.mkdir(index_dir_name)
         load_from_rows
       end
     end
 
     def load_from_rows
-      out = File.open(index_file_name, "w")
       self.each_row do |row|
-        c = @cache[row.chromosome.to_sym]
-        if (c.is_a? Hash)
-          c[row.position] = row.filePosition
-          out.puts("#{row.chromosome} #{row.position} #{row.filePosition}")
+        chr = row.chromosome.to_sym
+        unless (@cache)
+          @cache = createCacheFor(chr)
         end
+        if (@cache.chromosome != chr)
+          @cache.save
+          @cache = createCacheFor(chr)
+        end
+        @cache[row.position] = row.filePosition
       end
-      out.close
+      @cache.save
     end
 
     def load_from_index
       File.foreach(index_file_name) do |line|
         row = line.split
-        c = @cache[row[0].to_sym]
-        if (c.is_a? Hash)
-          c[row[1].to_i] = row[2].to_i
+        chr = row[0].to_sym
+        unless (@cache)
+          @cache = createCacheFor(chr)
         end
+        if (@cache.chromosome != chr)
+          @cache.save
+          @cache = createCacheFor(chr)
+        end
+        @cache[row[1].to_i] = row[2].to_i
       end
+      @cache.save
     end
 
     def has_index_file
@@ -113,8 +122,26 @@ module BioLabi
       "#{File.dirname(path)}/#{File.basename(path)}.biolabi.index"
     end
 
+    def index_dir_name
+      "#{File.dirname(path)}/#{File.basename(path)}_biolabi"
+    end
+
+    def createCacheFor(chromosome)
+      ChrCache.new(chromosome, "#{index_dir_name}/#{chromosome}.idx")
+    end
+
+    def cacheFor(chromosome)
+      if (@cache && @cache.chromosome == chromosome)
+        @cache
+      else
+        @cache = createCacheFor(chromosome)
+        @cache.load
+        @cache
+      end
+    end
+
     def findRow(chrom, position)
-      pos = @cache[chrom.to_sym][position]
+      pos = cacheFor(chrom.to_sym)[position]
       if (pos)
         readPos(pos)
       else
@@ -183,6 +210,49 @@ module BioLabi
         end
       end
       result
+    end
+  end
+
+  class ChrCache
+    SIZE = 17
+    MODE = "QQc"
+
+    attr_reader :chromosome, :path
+
+    attr_accessor :cache
+
+    def initialize(chromosome, path)
+      @chromosome = chromosome.to_sym
+      @path = path
+      @cache = Hash.new
+    end
+
+    def save
+      file = File.open(@path, "w")
+      @cache.each do |k, v|
+        buffer = [k.to_i, v.to_i, 0].pack MODE
+        file.write buffer
+      end
+      file.flush
+      file.close
+    end
+
+    def load
+      @cache = Hash.new
+      file = File.open(@path, "r")
+      while (buffer = file.read(SIZE))
+        arr = buffer.unpack(MODE)
+        @cache[arr[0]] = arr[1]
+      end
+      file.close
+    end
+
+    def [](position)
+      @cache[position.to_i]
+    end
+
+    def []=(position, filePosition)
+      @cache[position.to_i] = filePosition.to_i
     end
   end
 end
