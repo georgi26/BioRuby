@@ -183,8 +183,6 @@ module BioLabi
       @clnsig
     end
 
-    private
-
     def parse()
       tokens = @raw.split
       @chromosome = VCFFile::ASSEMBLY_REPORT.chromosomes_map[tokens[0]]
