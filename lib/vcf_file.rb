@@ -127,7 +127,8 @@ module BioLabi
     end
 
     def createCacheFor(chromosome)
-      ChrCache.new(chromosome, "#{index_dir_name}/#{chromosome}.idx")
+      chrCache = ChrCache.new(chromosome, "#{index_dir_name}/#{chromosome}.idx")
+      chrCache
     end
 
     def cacheFor(chromosome)
@@ -214,6 +215,7 @@ module BioLabi
   class ChrCache
     SIZE = 17
     MODE = "QQc"
+    BUFFER = 1000000
 
     attr_reader :chromosome, :path
 
@@ -226,7 +228,12 @@ module BioLabi
     end
 
     def save
-      file = File.open(@path, "w")
+      file = nil
+      if (File.exist? path)
+        file = File.open(@path, "a")
+      else
+        file = File.open(@path, "w")
+      end
       @cache.each do |k, v|
         buffer = [k.to_i, v.to_i, 0].pack MODE
         file.write buffer
@@ -238,9 +245,26 @@ module BioLabi
     def load
       @cache = Hash.new
       file = File.open(@path, "r")
-      while (buffer = file.read(SIZE))
-        arr = buffer.unpack(MODE)
-        @cache[arr[0]] = arr[1]
+      size = SIZE * BUFFER
+      mode = MODE * BUFFER
+      while (buffer = file.read(size))
+        if (buffer.size < size)
+          mode = MODE * (buffer.size / SIZE)
+        end
+        arr = buffer.unpack(mode)
+        index = 0
+        arrSize = arr.size
+        while (index < arrSize)
+          a = arr[index]
+          unless a
+            index = index + 1
+            break
+          end
+          if (a && a == 0)
+            @cache[arr[index - 2]] = arr[index - 1]
+          end
+          index = index + 1
+        end
       end
       file.close
     end
