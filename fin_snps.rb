@@ -1,4 +1,4 @@
-require_relative "./lib/vcf_file.rb"
+require_relative "./lib/bioruby.rb"
 puts "Start"
 t0 = Time.now
 puts "Started ad #{t0}"

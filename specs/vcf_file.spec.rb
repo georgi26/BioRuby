@@ -1,5 +1,5 @@
 require "minitest/autorun"
-require_relative "../lib/vcf_file.rb"
+require_relative "../lib/bioruby.rb"
 
 describe BioLabi::VCFRow do
   before do
