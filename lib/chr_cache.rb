@@ -63,5 +63,9 @@ module BioLabi
     def []=(position, filePosition)
       @cache[position.to_i] = filePosition.to_i
     end
+
+    def size
+      @cache.size
+    end
   end
 end

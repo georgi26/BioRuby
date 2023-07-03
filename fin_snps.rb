@@ -12,9 +12,9 @@ yourFile.each_row do |row|
   found = genome37File.findRow(row.chromosome, row.position)
   if (found)
     puts "#################################"
-    puts found
-    puts "---------------------------------"
     puts row
+    puts "---------------------------------"
+    puts found
     puts "##################################"
   end
 end
