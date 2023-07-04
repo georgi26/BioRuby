@@ -8,15 +8,17 @@ puts "Load file #{genome37File.path}"
 genome37File.load
 puts "Loaded"
 
+out = File.open("results_r_#{Time.now.strftime("%Y-%m-%d_%H_%M")}.txt", "w")
 yourFile.each_row do |row|
   found = genome37File.findRow(row.chromosome, row.position)
   if (found)
-    puts "#################################"
-    puts row
-    puts "---------------------------------"
-    puts found
-    puts "##################################"
+    out.puts "#################################"
+    out.puts row
+    out.puts "---------------------------------"
+    out.puts found
+    out.puts "##################################"
   end
 end
 t1 = Time.now
 puts "Ended at #{t1} took #{t1 - t0} "
+out.puts "Ended at #{t1} took #{t1 - t0} "
