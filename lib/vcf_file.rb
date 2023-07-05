@@ -114,7 +114,6 @@ module BioLabi
         @cache
       else
         @cache = createCacheFor(chromosome)
-        @cache.load
         @cache
       end
     end
