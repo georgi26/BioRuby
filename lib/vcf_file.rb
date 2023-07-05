@@ -120,7 +120,7 @@ module BioLabi
     end
 
     def findRow(chrom, position)
-      pos = cacheFor(chrom.to_sym)[position]
+      pos = cacheFor(chrom.to_sym).binSearch(position)
       if (pos)
         readPos(pos)
       else
