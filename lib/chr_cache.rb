@@ -2,10 +2,10 @@ module BioLabi
   class ChrCache
     SIZE = 17
     MODE = "QQc"
-    BUFFER = 1000000
-    B_SEARCH_BUFFER = 1000000
+    BUFFER = 1000
+    B_SEARCH_BUFFER = 1000
 
-    attr_reader :chromosome, :path
+    attr_reader :chromosome, :path, :loaded
 
     attr_accessor :cache
 
@@ -49,13 +49,19 @@ module BioLabi
       LOGGER.debug("Done Save ChrCache for #{path}")
     end
 
+    def loadAsync
+      Thread.new { self.load }
+    end
+
     def load
+      @loaded = false
+      @cancelLoad = false
       LOGGER.debug("Start Load ChrCache for #{path}")
       @cache = Hash.new
       file = File.open(@path, "r")
       size = SIZE * BUFFER
       mode = MODE * BUFFER
-      while (buffer = file.read(size))
+      while (buffer = file.read(size) && !cancelLoad)
         if (buffer.size < size)
           mode = MODE * (buffer.size / SIZE)
         end
@@ -74,8 +80,16 @@ module BioLabi
           index = index + 1
         end
       end
+      if (@cancelLoad)
+        @cache = Hash.new
+      end
+      @cancelLoad = false
       file.close
       LOGGER.debug("Done Load ChrCache for #{path}")
+    end
+
+    def cancelLoad
+      @cancelLoad = true
     end
 
     def [](position)
@@ -97,7 +111,6 @@ module BioLabi
       if ((endPos - startPos) < B_SEARCH_BUFFER)
         return searchBetween(position, startPos, endPos, file)
       end
-      LOGGER.debug "start #{startPos} end #{endPos}"
       middle = findMiddlePos(startPos, endPos)
       data = readAt(middle, file)
       if (data[0].to_i == position)

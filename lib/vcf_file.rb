@@ -113,13 +113,23 @@ module BioLabi
       if (@cache && @cache.chromosome == chromosome)
         @cache
       else
+        if (@cache && !@cache.loaded)
+          @cache.cancelLoad
+        end
         @cache = createCacheFor(chromosome)
+        @cache.loadAsync
         @cache
       end
     end
 
     def findRow(chrom, position)
-      pos = cacheFor(chrom.to_sym).binSearch(position)
+      pos = nil
+      chromCache = cacheFor(chrom.to_sym)
+      if (chromCache.loaded)
+        pos = chromCache[position]
+      else
+        pos = chromCache.binSearch(position)
+      end
       if (pos)
         readPos(pos)
       else
