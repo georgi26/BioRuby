@@ -25,9 +25,14 @@ describe BioLabi::VCFRow do
   end
 
   describe "When given row with CLNSIG=5" do
-    it "must read correct clnsig" do
+    it "must read correct clnsig and clndn" do
       row = BioLabi::VCFRow.new("NC_012920.1     960     rs1556422499    CT      CCC,CCCC,CCCCC,CCCCCC,CCCCCCC,CCCCCCCC  .       .       RS=1556422499;SSR=0;VC=INDEL;CLNVI=OMIM:561000.0002,OMIM:561000.0002,OMIM:561000.0002,OMIM:561000.0002,OMIM:561000.0002,OMIM:561000.0002,OMIM:561000.0002;CLNORIGIN=1,1,1,1,1,1,1;CLNSIG=5,5,5,5,5,5,5;CLNDISDB=GeneReviews:NBK1422/MONDO:MONDO:0010799/MedGen:C1838854/Orphanet:168609/OMIM:580000,GeneReviews:NBK1422/MONDO:MONDO:0010799/MedGen:C1838854/Orphanet:168609/OMIM:580000,GeneReviews:NBK1422/MONDO:MONDO:0010799/MedGen:C1838854/Orphanet:168609/OMIM:580000,GeneReviews:NBK1422/MONDO:MONDO:0010799/MedGen:C1838854/Orphanet:168609/OMIM:580000,GeneReviews:NBK1422/MONDO:MONDO:0010799/MedGen:C1838854/Orphanet:168609/OMIM:580000,GeneReviews:NBK1422/MONDO:MONDO:0010799/MedGen:C1838854/Orphanet:168609/OMIM:580000,GeneReviews:NBK1422/MONDO:MONDO:0010799/MedGen:C1838854/Orphanet:168609/OMIM:580000;CLNDN=Aminoglycoside-induced_deafness,Aminoglycoside-induced_deafness,Aminoglycoside-induced_deafness,Aminoglycoside-induced_deafness,Aminoglycoside-induced_deafness,Aminoglycoside-induced_deafness,Aminoglycoside-induced_deafness;CLNREVSTAT=no_criteria,no_criteria,no_criteria,no_criteria,no_criteria,no_criteria,no_criteria;CLNACC=RCV000010257.2,RCV000010257.2,RCV000010257.2,RCV000010257.2,RCV000010257.2,RCV000010257.2,RCV000010257.2;CLNHGVS=NC_012920.1:m.961=,NC_012920.1:m.961delinsCC,NC_012920.1:m.961delinsCCC,NC_012920.1:m.961delinsCCCC,NC_012920.1:m.961delinsCCCCC,NC_012920.1:m.961delinsCCCCCC,NC_012920.1:m.961delinsCCCCCC")
-      assert_equal 5, row.clnsig
+      assert_equal ["5", "5", "5", "5", "5", "5", "5"], row.clnsig
+      assert_equal ["Aminoglycoside-induced_deafness", "Aminoglycoside-induced_deafness",
+                    "Aminoglycoside-induced_deafness", "Aminoglycoside-induced_deafness", "Aminoglycoside-induced_deafness",
+                    "Aminoglycoside-induced_deafness", "Aminoglycoside-induced_deafness"], row.clndn
+      assert_equal 5, row.maxCLNSIG
+      assert_equal "Aminoglycoside-induced_deafness", row.clndnMost
     end
   end
 end

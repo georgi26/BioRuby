@@ -147,19 +147,57 @@ module BioLabi
     end
 
     def to_s
-      raw
+      "#{chromosome} #{position} #{id} #{ref} #{alt} #{info}"
+    end
+
+    def to_short_json
+      { chromosome: chromosome, position: position, id: id, clndn: clndn.uniq, clnsig: clnsig.uniq }.to_json
     end
 
     def clnsig
       unless @clnsig
         @clnsig = @info[:CLNSIG]
-        if (@clnsig && @clnsig.is_a?(Array))
-          @clnsig = @clnsig[0].to_i
-        elsif (@clnsig)
-          @clnsig = @clnsig.to_i
-        end
       end
       @clnsig
+    end
+
+    def clndn
+      unless @clndn
+        @clndn = @info[:CLNDN]
+      end
+      @clndn
+    end
+
+    def clndnMost
+      most = ""
+      mostCount = 0
+      if (clndn.is_a? Array)
+        clndn.each do |c|
+          if (c != most)
+            cCount = clndn.filter { |cc| cc == c }.count
+            if (cCount > mostCount)
+              mostCount = cCount
+              most = c
+            end
+          end
+        end
+      end
+
+      most
+    end
+
+    def maxCLNSIG
+      max = 0
+      cln = clnsig
+      if (cln.is_a? Array)
+        cln.each do |c|
+          i = c.to_i
+          if (i > max)
+            max = i
+          end
+        end
+      end
+      max
     end
 
     def parse()

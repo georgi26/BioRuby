@@ -8,7 +8,8 @@ puts "Load file #{genome37File.path}"
 genome37File.load
 puts "Loaded"
 
-out = File.open("results_r_#{Time.now.strftime("%Y-%m-%d_%H_%M")}.txt", "w")
+out = File.open("results_r_snp_#{Time.now.strftime("%Y-%m-%d_%H_%M")}.txt", "w")
+sig = File.open("results_r_snp_clnsig_#{Time.now.strftime("%Y-%m-%d_%H_%M")}.txt", "w")
 yourFile.each_row do |row|
   found = genome37File.findRow(row.chromosome, row.position)
   if (found)
@@ -17,6 +18,9 @@ yourFile.each_row do |row|
     out.puts "---------------------------------"
     out.puts found
     out.puts "##################################"
+    if (found.maxCLNSIG > 0)
+      sig.puts found.to_short_json
+    end
   end
 end
 t1 = Time.now
