@@ -155,26 +155,45 @@ module BioLabi
       self.parse
     end
 
+    def mergeReference(refRow)
+      @id = refRow.id
+      @info.merge! refRow.info
+    end
+
+    def ac
+      @info[:AC]
+    end
+
+    def af
+      @info[:AF]
+    end
+
+    def vc
+      @info[:VC]
+    end
+
     def to_s
       "#{chromosome} #{position} #{id} #{ref} #{alt} #{info}"
     end
 
-    def to_short_json
-      { chromosome: chromosome, position: position, id: id, clndn: clndn.uniq, clnsig: clnsig.uniq }.to_json
+    def to_json
+      { chromosome: chromosome, position: position, id: id, ref: ref, alt: alt, info: info }.to_json
+    end
+
+    def to_clin_json
+      { chromosome: chromosome, position: position, id: id, ref: ref, alt: alt, ac: ac, af: af, vc: vc, geninfo: geninfo, clndn: clndn.uniq, clnsig: clnsig.uniq }.to_json
     end
 
     def clnsig
-      unless @clnsig
-        @clnsig = @info[:CLNSIG]
-      end
-      @clnsig
+      @info[:CLNSIG] || []
     end
 
     def clndn
-      unless @clndn
-        @clndn = @info[:CLNDN]
-      end
-      @clndn
+      @info[:CLNDN] || []
+    end
+
+    def geninfo
+      @info[:GENEINFO]
     end
 
     def clndnMost
