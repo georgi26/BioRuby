@@ -149,6 +149,17 @@ module BioLabi
   class VCFRow
     attr_reader :chromosome, :id, :position, :ref, :alt, :info, :raw
     attr_accessor :filePosition
+    CLNSIG_TRANSLATION = [
+      "Uncertain significance", "not provided", "Benign", "Likely benign",
+      "Likely pathogenic", "Pathogenic", "Drug response", "Confers sensitivity",
+      "Risk factor", "Association", "Protective",
+      "Conflicting interpretations of pathogenicity", "Affects", "Association not found",
+      "Benign/Likely benign", "Pathogenic/Likely pathogenic",
+      "Conflicting data from submitters",
+      "Pathogenic, low penetrance", "Likely pathogenic, low penetrance",
+      "Established risk allele", "Likely risk allele",
+      "Uncertain risk allele",
+    ]
 
     def initialize(rawData)
       @raw = rawData
@@ -161,15 +172,15 @@ module BioLabi
     end
 
     def ac
-      @info[:AC]
+      getInfoFirst(:AC)
     end
 
     def af
-      @info[:AF]
+      getInfoFirst(:AF)
     end
 
     def vc
-      @info[:VC]
+      getInfoFirst(:VC)
     end
 
     def to_s
@@ -184,16 +195,46 @@ module BioLabi
       { chromosome: chromosome, position: position, id: id, ref: ref, alt: alt, ac: ac, af: af, vc: vc, geninfo: geninfo, clndn: clndn.uniq, clnsig: clnsig.uniq }.to_json
     end
 
+    def self.csv_header
+      "'chromosome','position','id','ref','alt','ac','af','vc','geninfo','clndn','clnsig','max_clnsig'"
+    end
+
+    def to_csv
+      "'#{chromosome}','#{position}','#{id}','#{ref}','#{alt}','#{ac}','#{af}','#{vc}','#{geninfo}','#{clndn_csv}','#{clnsig_translated_csv}','#{maxCLNSIG}'"
+    end
+
     def clnsig
       @info[:CLNSIG] || []
+    end
+
+    def clnsig_translated
+      clnsig.map do |cln|
+        CLNSIG_TRANSLATION[cln.to_i]
+      end
     end
 
     def clndn
       @info[:CLNDN] || []
     end
 
+    def clndn_csv
+      clndn.to_s.gsub("\"", "|")
+    end
+
+    def clnsig_translated_csv
+      clnsig_translated.to_s.gsub("\"", "|")
+    end
+
     def geninfo
-      @info[:GENEINFO]
+      getInfoFirst(:GENEINFO)
+    end
+
+    def getInfoFirst(key)
+      result = @info[key]
+      if (result.is_a?(Array) && result.size == 1)
+        result = result.first
+      end
+      result
     end
 
     def clndnMost
@@ -249,8 +290,18 @@ module BioLabi
         if (rr.size >= 2)
           key = rr[0]
           values = rr[1].split ","
-          result[key.to_sym] = values
+
+          result[key.to_sym] = mergeValues(values)
         end
+      end
+      result
+    end
+
+    def mergeValues(values)
+      result = []
+      values.each do |v|
+        vvs = v.split("|")
+        result.push *vvs
       end
       result
     end

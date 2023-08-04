@@ -35,6 +35,26 @@ describe BioLabi::VCFRow do
       assert_equal "Aminoglycoside-induced_deafness", row.clndnMost
     end
   end
+
+  describe "parseInfo should parse info with | separator " do
+    before do
+      @row = BioLabi::VCFRow.new "NC_000001.10    11850750        rs35737219      G       A       .       .       RS=35737219;dbSNPBuildID=126;SSR=0;GENEINFO=MTHFR:4524;VC=SNV;PUB;NSM;GNO;FREQ=1000Genomes:0.9956,0.004372|ALSPAC:0.9756,0.02439|Estonian:0.9922,0.007812|ExAC:0.986,0.01395|FINRISK:0.9901,0.009868|GENOME_DK:0.975,0.025|GnomAD:0.9854,0.01462|GnomAD_exomes:0.9863,0.01366|GoESP:0.9815,0.01845|GoNL:0.9699,0.03006|KOREAN:0.999,0.001027|MGP:0.9813,0.01873|NorthernSweden:0.97,0.03|PAGE_STUDY:0.9928,0.00723|PRJEB37584:0.9987,0.001263|PRJEB37766:0.9909,0.009107|PharmGKB:0.9833,0.01668|Qatari:0.9954,0.00463|SGDP_PRJ:0.5,0.5|Siberian:0.5,0.5|TOPMED:0.9856,0.0144|TWINSUK:0.9795,0.0205|dbGaP_PopFreq:0.9786,0.02139;COMMON;CLNVI=.,ARUP_Laboratories\x2c_Molecular_Genetics_and_Genomics\x2cARUP_Laboratories:108838|UniProtKB:P42898#VAR_018860;CLNORIGIN=.,1;CLNSIG=.,2|2|2|2;CLNDISDB=.,MedGen:CN169374|Office_of_Rare_Diseases:2734/MONDO:MONDO:0009353/MedGen:C1856058/Orphanet:395/OMIM:236250|MedGen:CN517202|MedGen:C4017062;CLNDN=.,not_specified|Homocystinuria_due_to_methylene_tetrahydrofolate_reductase_deficiency|not_provided|Homocystinuria_due_to_MTHFR_deficiency;CLNREVSTAT=.,single|mult|mult|no_criteria;CLNACC=.,RCV000261696.8|RCV000534228.8|RCV000755305.8|RCV001273142.2;CLNHGVS=NC_000001.10:g.11850750=,NC_000001.10:g.11850750G>A"
+    end
+
+    it "Must read merge clnsig CLNSIG=.,2|2|2|2 into [0,2,2,2,2]" do
+      assert_equal [".", "2", "2", "2", "2"], @row.clnsig
+    end
+
+    it "Must generate csv header" do
+      assert_equal "'chromosome','position','id','ref','alt','ac','af','vc','geninfo','clndn','clnsig','max_clnsig'",
+                   BioLabi::VCFRow.csv_header
+    end
+
+    it "Must convert row to csv" do
+      assert_equal "1,11850750,rs35737219,G,A,,,SNV,MTHFR:4524,[\".\", \"not_specified\", \"Homocystinuria_due_to_methylene_tetrahydrofolate_reductase_deficiency\", \"not_provided\", \"Homocystinuria_due_to_MTHFR_deficiency\"],[\"Uncertain significance\", \"Benign\", \"Benign\", \"Benign\", \"Benign\"],2",
+                   @row.to_csv
+    end
+  end
 end
 
 describe BioLabi::VCFFile do
