@@ -7,7 +7,7 @@ file = ARGV[0]
 basename = File.basename(file)
 puts "Start"
 t0 = Time.now
-puts "Started ad #{t0}"
+puts "Started at #{t0}"
 yourFile = BioLabi::VCFFile.new(file)
 genome37File = BioLabi::VCFFile.new("/home/georgi/Documents/LabResults/DNA/GCF_000001405.25")
 puts "Load file #{genome37File.path}"

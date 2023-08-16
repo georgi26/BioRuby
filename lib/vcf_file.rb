@@ -203,6 +203,10 @@ module BioLabi
       "'#{chromosome}','#{position}','#{id}','#{ref}','#{alt}','#{ac}','#{af}','#{vc}','#{geninfo}','#{clndn_csv}','#{clnsig_translated_csv}','#{maxCLNSIG}'"
     end
 
+    def freq
+      @info[:FREQ] || []
+    end
+
     def clnsig
       @info[:CLNSIG] || []
     end
@@ -288,10 +292,13 @@ module BioLabi
       rows.each do |r|
         rr = r.split("=")
         if (rr.size >= 2)
-          key = rr[0]
-          values = rr[1].split ","
-
-          result[key.to_sym] = mergeValues(values)
+          key = rr[0].to_sym
+          if (key == :FREQ)
+            result[key] = parseFreq(rr[1])
+          else
+            values = rr[1].split ","
+            result[key] = mergeValues(values)
+          end
         end
       end
       result
@@ -302,6 +309,20 @@ module BioLabi
       values.each do |v|
         vvs = v.split("|")
         result.push *vvs
+      end
+      result
+    end
+
+    def parseFreq(data)
+      result = {}
+      frequencies = data.split("|")
+      frequencies.each do |f|
+        kv = f.split(":")
+        if (kv.size == 2)
+          result[kv[0]] = kv[1].split(",")
+        else
+          raise "Error parse frequency"
+        end
       end
       result
     end

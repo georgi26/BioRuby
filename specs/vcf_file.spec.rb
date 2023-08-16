@@ -36,7 +36,7 @@ describe BioLabi::VCFRow do
     end
   end
 
-  describe "parseInfo should parse info with | separator " do
+  describe "parseInfo should parse info with | separator and also parse FREQ" do
     before do
       @row = BioLabi::VCFRow.new "NC_000001.10    11850750        rs35737219      G       A       .       .       RS=35737219;dbSNPBuildID=126;SSR=0;GENEINFO=MTHFR:4524;VC=SNV;PUB;NSM;GNO;FREQ=1000Genomes:0.9956,0.004372|ALSPAC:0.9756,0.02439|Estonian:0.9922,0.007812|ExAC:0.986,0.01395|FINRISK:0.9901,0.009868|GENOME_DK:0.975,0.025|GnomAD:0.9854,0.01462|GnomAD_exomes:0.9863,0.01366|GoESP:0.9815,0.01845|GoNL:0.9699,0.03006|KOREAN:0.999,0.001027|MGP:0.9813,0.01873|NorthernSweden:0.97,0.03|PAGE_STUDY:0.9928,0.00723|PRJEB37584:0.9987,0.001263|PRJEB37766:0.9909,0.009107|PharmGKB:0.9833,0.01668|Qatari:0.9954,0.00463|SGDP_PRJ:0.5,0.5|Siberian:0.5,0.5|TOPMED:0.9856,0.0144|TWINSUK:0.9795,0.0205|dbGaP_PopFreq:0.9786,0.02139;COMMON;CLNVI=.,ARUP_Laboratories\x2c_Molecular_Genetics_and_Genomics\x2cARUP_Laboratories:108838|UniProtKB:P42898#VAR_018860;CLNORIGIN=.,1;CLNSIG=.,2|2|2|2;CLNDISDB=.,MedGen:CN169374|Office_of_Rare_Diseases:2734/MONDO:MONDO:0009353/MedGen:C1856058/Orphanet:395/OMIM:236250|MedGen:CN517202|MedGen:C4017062;CLNDN=.,not_specified|Homocystinuria_due_to_methylene_tetrahydrofolate_reductase_deficiency|not_provided|Homocystinuria_due_to_MTHFR_deficiency;CLNREVSTAT=.,single|mult|mult|no_criteria;CLNACC=.,RCV000261696.8|RCV000534228.8|RCV000755305.8|RCV001273142.2;CLNHGVS=NC_000001.10:g.11850750=,NC_000001.10:g.11850750G>A"
     end
@@ -51,8 +51,21 @@ describe BioLabi::VCFRow do
     end
 
     it "Must convert row to csv" do
-      assert_equal "1,11850750,rs35737219,G,A,,,SNV,MTHFR:4524,[\".\", \"not_specified\", \"Homocystinuria_due_to_methylene_tetrahydrofolate_reductase_deficiency\", \"not_provided\", \"Homocystinuria_due_to_MTHFR_deficiency\"],[\"Uncertain significance\", \"Benign\", \"Benign\", \"Benign\", \"Benign\"],2",
-                   @row.to_csv
+      expected = "'1','11850750','rs35737219','G','A','','','SNV','MTHFR:4524','[|.|, |not_specified|, |Homocystinuria_due_to_methylene_tetrahydrofolate_reductase_deficiency|, |not_provided|, |Homocystinuria_due_to_MTHFR_deficiency|]','[|Uncertain significance|, |Benign|, |Benign|, |Benign|, |Benign|]','2'"
+      assert_equal expected, @row.to_csv
+    end
+
+    it "Freq must equal" do
+      expected = { "1000Genomes" => ["0.9956", "0.004372"], "ALSPAC" => ["0.9756", "0.02439"],
+                   "Estonian" => ["0.9922", "0.007812"], "ExAC" => ["0.986", "0.01395"], "FINRISK" => ["0.9901", "0.009868"],
+                   "GENOME_DK" => ["0.975", "0.025"], "GnomAD" => ["0.9854", "0.01462"], "GnomAD_exomes" => ["0.9863", "0.01366"],
+                   "GoESP" => ["0.9815", "0.01845"], "GoNL" => ["0.9699", "0.03006"], "KOREAN" => ["0.999", "0.001027"],
+                   "MGP" => ["0.9813", "0.01873"], "NorthernSweden" => ["0.97", "0.03"], "PAGE_STUDY" => ["0.9928", "0.00723"],
+                   "PRJEB37584" => ["0.9987", "0.001263"], "PRJEB37766" => ["0.9909", "0.009107"], "PharmGKB" => ["0.9833", "0.01668"],
+                   "Qatari" => ["0.9954", "0.00463"], "SGDP_PRJ" => ["0.5", "0.5"], "Siberian" => ["0.5", "0.5"],
+                   "TOPMED" => ["0.9856", "0.0144"], "TWINSUK" => ["0.9795", "0.0205"],
+                   "dbGaP_PopFreq" => ["0.9786", "0.02139"] }
+      assert_equal expected, @row.freq
     end
   end
 end
@@ -84,10 +97,10 @@ describe BioLabi::VCFFile do
 
     it "Has to find row by chromosome and position " do
       @vcfFile.load
-      row = @vcfFile.findRow("1", 10031)
+      row = @vcfFile.findRow("1", 10032)
       assert row
       assert_equal :"1", row.chromosome
-      assert_equal 10031, row.position
+      assert_equal 10032, row.position
     end
   end
 end
@@ -99,12 +112,12 @@ describe BioLabi::AssemblyReport do
   describe "When given GenBank-Accn or RefSeq-Accn" do
     it "Must return correct chromosome number " do
       assert_equal :"1", @aReport.chromosomes_map["NC_000001.10"]
-      assert_equal :"11", @aReport.chromosomes_map["GL000202.1"]
-      assert_equal :"1", @aReport.chromosomes_map["NW_004070863.1"]
-      assert_equal :"7", @aReport.chromosomes_map["NW_003571039.1"]
-      assert_equal :"X", @aReport.chromosomes_map["NW_004070883.1"]
+      assert_equal :"11", @aReport.chromosomes_map["NC_000011.9"]
+      #assert_equal :"1", @aReport.chromosomes_map["NW_004070863.1"]
+      #assert_equal :"7", @aReport.chromosomes_map["NW_003571039.1"]
+      #assert_equal :"X", @aReport.chromosomes_map["NW_004070883.1"]
       assert_equal :"MT", @aReport.chromosomes_map["NC_012920.1"]
-      assert_equal :"17", @aReport.chromosomes_map["GL000258.1"]
+      #assert_equal :"17", @aReport.chromosomes_map["GL000258.1"]
     end
   end
 end

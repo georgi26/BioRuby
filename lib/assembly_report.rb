@@ -10,11 +10,13 @@ module BioLabi
 
     def parseFile()
       File.foreach(@file) do |line|
-        if (!line.start_with? "#")
-          data = line.split
-          if (data.size > 6)
-            @chromosomes_map[data[4].chomp] = data[2].chomp.to_sym
-            @chromosomes_map[data[6].chomp] = data[2].chomp.to_sym
+        data = line.split
+        if (!line.start_with?("#") && data.size > 6)
+          chr = data[0].chomp.to_sym
+          chrInt = chr.to_s.to_i
+          if ((1..22).include?(chrInt) || chr == :X || chr == :Y || chr == :MT)
+            @chromosomes_map[data[4].chomp] = chr
+            @chromosomes_map[data[6].chomp] = chr
           end
         end
       end
