@@ -63,15 +63,17 @@ module BioLabi
 
     def load_from_rows
       self.each_row do |row|
-        chr = row.chromosome.to_sym
-        unless (@cache)
-          @cache = createCacheFor(chr)
+        if row.chromosome
+          chr = row.chromosome.to_sym
+          unless (@cache)
+            @cache = createCacheFor(chr)
+          end
+          if (@cache.chromosome != chr)
+            @cache.save
+            @cache = createCacheFor(chr)
+          end
+          @cache[row.position] = row.filePosition
         end
-        if (@cache.chromosome != chr)
-          @cache.save
-          @cache = createCacheFor(chr)
-        end
-        @cache[row.position] = row.filePosition
       end
       @cache.save
     end

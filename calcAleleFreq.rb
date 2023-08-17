@@ -50,7 +50,7 @@ class VObject
 end
 
 genome37File.each_row do |row|
-  if (row.vc == "SNV" && row.freq)
+  if (row.vc == "SNV" && row.freq && row.chromosome)
     totalAllels += 2
     found = yourFile.findRow(row.chromosome, row.position)
     if (found)
