@@ -20,7 +20,7 @@ describe BioLabi::VCFRow do
       _(@vcfRow.ref).must_equal "T"
     end
     it "must read alt correctly" do
-      _(@vcfRow.alt).must_equal "A,C"
+      _(@vcfRow.alt).must_equal ["A", "C"]
     end
   end
 
@@ -111,13 +111,28 @@ describe BioLabi::AssemblyReport do
   end
   describe "When given GenBank-Accn or RefSeq-Accn" do
     it "Must return correct chromosome number " do
-      assert_equal :"1", @aReport.chromosomes_map["NC_000001.10"]
-      assert_equal :"11", @aReport.chromosomes_map["NC_000011.9"]
-      #assert_equal :"1", @aReport.chromosomes_map["NW_004070863.1"]
-      #assert_equal :"7", @aReport.chromosomes_map["NW_003571039.1"]
-      #assert_equal :"X", @aReport.chromosomes_map["NW_004070883.1"]
-      assert_equal :"MT", @aReport.chromosomes_map["NC_012920.1"]
-      #assert_equal :"17", @aReport.chromosomes_map["GL000258.1"]
+      assert_equal :"1", @aReport["NC_000001.10"]
+      assert_equal :"11", @aReport["NC_000011.9"]
+      #assert_equal :"1", @aReport["NW_004070863.1"]
+      #assert_equal :"7", @aReport["NW_003571039.1"]
+      #assert_equal :"X", @aReport["NW_004070883.1"]
+      assert_equal :"MT", @aReport["NC_012920.1"]
+      #assert_equal :"17", @aReport["GL000258.1"]
     end
+  end
+end
+
+describe "Find Frequency for Given allel" do
+  before do
+    data = "NC_000001.10    961827  rs3121556       G       A,T     .       .       RS=3121556;dbSNPBuildID=103;SSR=0;GENEINFO=AGRN:375790;VC=SNV;INT;R5;GNO;FREQ=1000Genomes:0.1721,0.8279,.|ALSPAC:0.08381,0.9162,.|Estonian:0.05536,0.9446,.|GENOME_DK:0.05,0.95,.|GnomAD:0.1783,0.8217,.|GoNL:0.0521,0.9479,.|KOREAN:0.04369,0.9563,0|Korea1K:0.03384,0.9662,.|NorthernSweden:0.1233,0.8767,.|Qatari:0.1806,0.8194,.|SGDP_PRJ:0.09023,0.9098,.|Siberian:0.05357,0.9464,.|TOMMO:0.02997,0.97,.|TOPMED:0.1832,0.8168,.|TWINSUK:0.07956,0.9204,.|Vietnamese:0.00463,0.9954,.|dbGaP_PopFreq:0.1292,0.8708,.;COMM"
+    @row = BioLabi::VCFRow.new(data)
+  end
+  it "Must diplay frequency for given allele" do
+    assert_equal 0.9446, @row.freqFor("Estonian", "A")
+    assert_equal 0.05536, @row.freqFor("Estonian", "G")
+    assert_equal 0, @row.freqFor("Estonian", "T")
+    assert_equal 0.9563, @row.freqFor("KOREAN", "A")
+    assert_equal 0.04369, @row.freqFor("KOREAN", "G")
+    assert_equal 0, @row.freqFor("KOREAN", "T")
   end
 end

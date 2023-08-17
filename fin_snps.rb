@@ -21,7 +21,7 @@ sig.puts BioLabi::VCFRow.csv_header
 sig4 = File.open("#{basename}_#{Time.now.strftime("%Y-%m-%d_%H_%M")}_clnsig4.csv", "w")
 sig4.puts BioLabi::VCFRow.csv_header
 yourFile.each_row do |row|
-  found = genome37File.findRow(row.chromosome, row.position)
+  found = genome37File.findRow(row.chromosome, row.position) if row.chromosome
   if (found)
     row.mergeReference found
     out.puts row.to_csv

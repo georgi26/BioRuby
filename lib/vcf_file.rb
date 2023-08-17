@@ -217,6 +217,32 @@ module BioLabi
       end
     end
 
+    def freqFor(state, allele)
+      index = allels.index(allele)
+      if (index)
+        result = freq[state][index] || 0
+        result.to_f
+      else
+        0
+      end
+    end
+
+    def allels
+      result = []
+      if (ref.is_a? Array)
+        result = [*ref]
+      else
+        result.push(ref)
+      end
+
+      if (alt.is_a? Array)
+        result = [*result, *alt]
+      else
+        result.push(alt)
+      end
+      result
+    end
+
     def clndn
       @info[:CLNDN] || []
     end
@@ -275,14 +301,12 @@ module BioLabi
 
     def parse()
       tokens = @raw.split
-      @chromosome = VCFFile::ASSEMBLY_REPORT.chromosomes_map[tokens[0]]
-      unless @chromosome
-        @chromosome = tokens[0]
-      end
+      @chromosome = VCFFile::ASSEMBLY_REPORT[tokens[0]]
       @position = tokens[1].to_i
       @id = tokens[2]
       @ref = tokens[3]
-      @alt = tokens[4]
+      @alt = tokens[4].split(",")
+      @alt = @alt[0] if @alt.size == 1
       @info = parseInfo(tokens[7])
     end
 
