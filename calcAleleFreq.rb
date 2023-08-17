@@ -41,11 +41,11 @@ class VObject
   end
 
   def percent
-    (value / count) * 100
+    ((value / count) * 100).round(3)
   end
 
   def updateTotal(totalAllels)
-    @total = percent * (count.to_f / totalAllels)
+    @total = (percent * (count.to_f / totalAllels)).round(3)
   end
 end
 
@@ -88,7 +88,7 @@ genome37File.each_row do |row|
     if (totalAllels >= printLimitCount)
       puts "Update Total #{totalAllels}"
       puts "Update results #{result}"
-      puts "Update results #{result.map { |k, v| "#{k}: #{v.total} %" }}"
+      puts "Update results #{result.map { |k, v| "#{k}(#{v.percent} %): #{v.total}%" }}"
       printLimitCount += PRINT_INCREMENT
     end
   end
